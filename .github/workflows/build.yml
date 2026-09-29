@@ -12,10 +12,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.7
+          gradle-version: 9.5.0
       - name: Generate project
         run: |
           mkdir -p app/src/main/assets app/src/main/java/com/prank/reaction app/src/main/res/mipmap-xxxhdpi
@@ -28,7 +28,7 @@ jobs:
           include ':app'
           EOF
           cat > build.gradle <<'EOF'
-          plugins { id 'com.android.application' version '8.5.0' apply false }
+          plugins { id 'com.android.application' version '9.3.1' apply false }
           EOF
           cat > app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
