@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тест реакции</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+:root{--bg:#1b2a3a;--fg:#fff;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,Roboto,Arial,sans-serif;overflow:hidden;touch-action:manipulation}
+#g{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;transition:background .1s}
+#g.wait{background:#c0392b}#g.go{background:#27ae60}
+h1{font-size:30px;margin:0 0 12px}p{font-size:18px;margin:6px 0;opacity:.9}
+.big{font-size:64px;margin:10px 0}
+button{font-size:20px;padding:14px 34px;border:0;border-radius:30px;background:#f1c40f;color:#111;font-weight:700;margin-top:22px}
+#s{position:fixed;inset:0;background:#000;display:none;z-index:9}
+#s video{width:100%;height:100%;object-fit:cover;animation:sh .08s infinite}
+@keyframes sh{0%{transform:translate(4px,3px) scale(1.05)}50%{transform:translate(-5px,-3px) scale(1.12)}100%{transform:translate(3px,-4px) scale(1.05)}}
+</style></head><body>
+<div id="g"><div id="t"></div></div>
+<div id="s"><video id="v" playsinline loop preload="auto" src="screamer.mp4"></video></div>
+<script>
+var g=document.getElementById('g'),t=document.getElementById('t'),s=document.getElementById('s'),v=document.getElementById('v');
+var round=0,total=5,scRound=2+Math.floor(Math.random()*3),state='idle',timer,t0,times=[],taps=0,shownAt=0,done=false;
+function home(){g.className='';t.innerHTML='<img src="icon.png" width="140" style="border-radius:24px;margin-bottom:14px"><h1>Тест реакции</h1><p>Нажимай, как только экран станет зелёным.</p><p>Пять попыток. Не жульничай!</p><button id="b">Начать</button>';
+  document.getElementById('b').onclick=function(e){e.stopPropagation();
+    v.muted=true;var p=v.play();if(p&&p.then)p.then(function(){v.pause();v.currentTime=0;}).catch(function(){});
+    next();};}
+function next(){
+  round++;state='wait';g.className='wait';
+  t.innerHTML='<h1>Жди...</h1><p>Попытка '+round+' из '+total+'</p><p>Ещё не нажимай!</p>';
+  timer=setTimeout(function(){
+    if(round===scRound&&!done){scare();return;}
+    state='go';g.className='go';t0=performance.now();t.innerHTML='<div class="big">НАЖИМАЙ!</div>';
+  },1500+Math.random()*2500);
+}
+function scare(){
+  state='scare';taps=0;shownAt=Date.now();s.style.display='block';
+  v.muted=false;v.volume=1;v.currentTime=0;v.play();
+  try{navigator.vibrate([400,100,400,100,600]);}catch(e){}
+}
+s.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  if(Date.now()-shownAt<600)return;
+  taps++;try{navigator.vibrate(60);}catch(e){}
+  if(taps>=6){s.style.display='none';v.pause();done=true;state='after';
+    g.className='';t.innerHTML='<div class="big">😈</div><h1>Тебя разыграли!</h1><p>Ну как, испугался?</p>';}
+});
+g.addEventListener('pointerdown',function(){
+  if(state==='wait'){clearTimeout(timer);state='early';g.className='';t.innerHTML='<h1>Слишком рано!</h1><p>Подожди, пока станет зелёным.</p><button id="r">Ещё раз</button>';round--;
+    document.getElementById('r').onclick=function(e){e.stopPropagation();next();};}
+  else if(state==='go'){var ms=Math.round(performance.now()-t0);times.push(ms);state='res';g.className='';
+    if(round<total){t.innerHTML='<div class="big">'+ms+' мс</div><button id="n">Дальше</button>';
+      document.getElementById('n').onclick=function(e){e.stopPropagation();next();};}
+    else{var avg=Math.round(times.reduce(function(a,b){return a+b;})/times.length);
+      t.innerHTML='<h1>Готово!</h1><div class="big">'+avg+' мс</div><p>средняя реакция</p>';}}
+});
+home();
+</script></body></html>
